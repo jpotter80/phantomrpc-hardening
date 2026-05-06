@@ -42,13 +42,12 @@ Write-Section "1. SYSTEM INFORMATION"
 $sysInfo = Get-ComputerInfo | Select-Object `
     CsName, WindowsProductName, WindowsVersion, OsBuildNumber,
     OsArchitecture, OsLastBootUpTime, CsManufacturer, CsModel
-$sysInfo | Format-List | Out-String | Write-Out
+Write-Out ($sysInfo | Format-List | Out-String)
 
 # -- 2. Installed Hotfixes (last 30) --------------------------------------
 Write-Section "2. INSTALLED HOTFIXES (most recent 30)"
 $hotfixes = Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 30
-$hotfixes | Format-Table HotFixID, Description, InstalledOn, InstalledBy -AutoSize |
-    Out-String | Write-Out
+Write-Out ($hotfixes | Format-Table HotFixID, Description, InstalledOn, InstalledBy -AutoSize | Out-String)
 
 $newest = $hotfixes | Select-Object -First 1
 if ($newest.InstalledOn) {
@@ -61,9 +60,8 @@ if ($newest.InstalledOn) {
 
 # -- 3. Windows Update Service --------------------------------------------
 Write-Section "3. WINDOWS UPDATE SERVICE"
-Get-Service -Name wuauserv |
-    Select-Object Name, DisplayName, Status, StartType |
-    Format-List | Out-String | Write-Out
+$wuSvc = Get-Service -Name wuauserv | Select-Object Name, DisplayName, Status, StartType
+Write-Out ($wuSvc | Format-List | Out-String)
 
 # -- 4. PhantomRPC-Relevant Services --------------------------------------
 Write-Section "4. PHANTOMRPC-RELEVANT SERVICES"
@@ -72,9 +70,9 @@ Write-Out "If stopped, their RPC endpoint can be hijacked by an attacker."
 Write-Out ""
 @('TermService','Dhcp','W32Time','WdiSystemHost') | ForEach-Object {
     try {
-        Get-Service -Name $_ -ErrorAction Stop |
-            Select-Object Name, DisplayName, Status, StartType |
-            Format-Table -AutoSize | Out-String | Write-Out
+        $svc = Get-Service -Name $_ -ErrorAction Stop |
+            Select-Object Name, DisplayName, Status, StartType
+        Write-Out ($svc | Format-Table -AutoSize | Out-String)
     } catch {
         Write-Out "  [NOT FOUND] Service '$_' does not exist on this machine"
         Write-Out ""
@@ -83,9 +81,8 @@ Write-Out ""
 
 # -- 5. All Running Services ----------------------------------------------
 Write-Section "5. ALL CURRENTLY RUNNING SERVICES"
-Get-Service | Where-Object Status -eq 'Running' |
-    Sort-Object Name |
-    Format-Table Name, DisplayName, StartType -AutoSize | Out-String | Write-Out
+$runningSvcs = Get-Service | Where-Object Status -eq 'Running' | Sort-Object Name
+Write-Out ($runningSvcs | Format-Table Name, DisplayName, StartType -AutoSize | Out-String)
 
 # -- 6. Microsoft Defender Status -----------------------------------------
 Write-Section "6. MICROSOFT DEFENDER STATUS"
@@ -118,8 +115,8 @@ try {
 # -- 7. Windows Firewall Status -------------------------------------------
 Write-Section "7. WINDOWS FIREWALL STATUS"
 try {
-    $profiles = Get-NetFirewallProfile -ErrorAction Stop
-    foreach ($p in $profiles) {
+    $fwProfiles = Get-NetFirewallProfile -ErrorAction Stop
+    foreach ($p in $fwProfiles) {
         $status = if ($p.Enabled) { '[PASS]' } else { '[FAIL]' }
         $line   = "  $status  Profile: $($p.Name) | Enabled: $($p.Enabled) | DefaultInbound: $($p.DefaultInboundAction)"
         Write-Out $line
@@ -132,10 +129,8 @@ try {
 Write-Section "8. LISTENING TCP PORTS"
 Write-Out "Ports this machine is accepting inbound connections on:"
 Write-Out ""
-Get-NetTCPConnection -State Listen |
-    Sort-Object LocalPort |
-    Format-Table LocalAddress, LocalPort, OwningProcess -AutoSize | Out-String | Write-Out
-
+$listeners = Get-NetTCPConnection -State Listen | Sort-Object LocalPort
+Write-Out ($listeners | Format-Table LocalAddress, LocalPort, OwningProcess -AutoSize | Out-String)
 Write-Out "Key ports to note:"
 Write-Out "  135  = RPC Endpoint Mapper (used by PhantomRPC attack chain)"
 Write-Out "  445  = SMB (file sharing -- vector for many Windows exploits)"
@@ -146,8 +141,8 @@ Write-Section "9. LOCAL ADMINISTRATOR ACCOUNTS"
 Write-Out "All accounts with full administrator rights on this machine:"
 Write-Out ""
 try {
-    Get-LocalGroupMember -Group 'Administrators' -ErrorAction Stop |
-        Format-Table Name, ObjectClass, PrincipalSource -AutoSize | Out-String | Write-Out
+    $admins = Get-LocalGroupMember -Group 'Administrators' -ErrorAction Stop
+    Write-Out ($admins | Format-Table Name, ObjectClass, PrincipalSource -AutoSize | Out-String)
 } catch {
     Write-Out "  [ERROR] Could not retrieve Administrators group: $_"
 }
@@ -182,9 +177,8 @@ Write-Section "11. NETWORK CONNECTION PROFILES"
 Write-Out "Network should be set to 'Private' for a trusted shop LAN, not 'Public'."
 Write-Out ""
 try {
-    Get-NetConnectionProfile -ErrorAction Stop |
-        Format-Table Name, NetworkCategory, IPv4Connectivity, IPv6Connectivity -AutoSize |
-        Out-String | Write-Out
+    $netProfiles = Get-NetConnectionProfile -ErrorAction Stop
+    Write-Out ($netProfiles | Format-Table Name, NetworkCategory, IPv4Connectivity, IPv6Connectivity -AutoSize | Out-String)
 } catch {
     Write-Out "  [ERROR] Could not retrieve network profiles: $_"
 }
