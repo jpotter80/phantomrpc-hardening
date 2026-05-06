@@ -1,5 +1,5 @@
 # 03_defender_check.ps1
-# PhantomRPC Hardening — Microsoft Defender Verification (Read-Only)
+# PhantomRPC Hardening -- Microsoft Defender Verification (Read-Only)
 # Reports Defender status. Makes no changes.
 # Any [FAIL] items should be reviewed by an IT professional.
 
@@ -26,8 +26,9 @@ $checks = [ordered]@{
 $allPass = $true
 foreach ($key in $checks.Keys) {
     $val    = $checks[$key]
-    $status = if ($val) { '[PASS]' } else { '[FAIL]'; $allPass = $false }
+    $status = if ($val) { '[PASS]' } else { '[FAIL]' }
     $color  = if ($val) { 'Green' } else { 'Red' }
+    if (-not $val) { $allPass = $false }
     Write-Host "  $status  $key" -ForegroundColor $color
 }
 

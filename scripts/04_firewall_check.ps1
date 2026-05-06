@@ -1,5 +1,5 @@
 # 04_firewall_check.ps1
-# PhantomRPC Hardening — Windows Firewall Verification (Read-Only)
+# PhantomRPC Hardening -- Windows Firewall Verification (Read-Only)
 # Reports firewall state across all profiles. Makes no changes.
 #
 # IMPORTANT: If any profile reports [FAIL] (firewall disabled), do NOT
@@ -21,10 +21,11 @@ try {
 
 $allEnabled = $true
 foreach ($p in $profiles) {
-    $status = if ($p.Enabled) { '[PASS]' } else { '[FAIL]'; $allEnabled = $false }
+    $status = if ($p.Enabled) { '[PASS]' } else { '[FAIL]' }
     $color  = if ($p.Enabled) { 'Green' } else { 'Red' }
-    Write-Host ("  $status  Profile: {0,-8} | Enabled: {1,-5} | DefaultInbound: {2}" -f `
-        $p.Name, $p.Enabled, $p.DefaultInboundAction) -ForegroundColor $color
+    if (-not $p.Enabled) { $allEnabled = $false }
+    $line = "  $status  Profile: $($p.Name) | Enabled: $($p.Enabled) | DefaultInbound: $($p.DefaultInboundAction)"
+    Write-Host $line -ForegroundColor $color
 }
 
 Write-Host ""

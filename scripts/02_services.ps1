@@ -1,15 +1,15 @@
 # 02_services.ps1
-# PhantomRPC Hardening — Ensure RPC-Critical Services Are Running
+# PhantomRPC Hardening -- Ensure RPC-Critical Services Are Running
 # Sets DHCP Client and Windows Time to Automatic start and starts them if stopped.
 # These services are expected on any standard Windows machine and are safe to enable.
 
 #Requires -RunAsAdministrator
 
-Write-Host "`n[*] PhantomRPC service hardening — starting..." -ForegroundColor Cyan
+Write-Host "`n[*] PhantomRPC service hardening -- starting..." -ForegroundColor Cyan
 
 $services = @(
-    @{ Name = 'Dhcp';    Label = 'DHCP Client'   },
-    @{ Name = 'W32Time'; Label = 'Windows Time'  }
+    @{ Name = 'Dhcp';    Label = 'DHCP Client'  },
+    @{ Name = 'W32Time'; Label = 'Windows Time' }
 )
 
 foreach ($svc in $services) {
@@ -17,20 +17,18 @@ foreach ($svc in $services) {
     try {
         $s = Get-Service -Name $svc.Name -ErrorAction Stop
 
-        # Set to Automatic if not already
         if ($s.StartType -ne 'Automatic') {
             Set-Service -Name $svc.Name -StartupType Automatic
             Write-Host "    [+] StartType set to Automatic (was: $($s.StartType))"
         } else {
-            Write-Host "    [+] StartType already Automatic — no change needed"
+            Write-Host "    [+] StartType already Automatic -- no change needed"
         }
 
-        # Start if not running
         if ($s.Status -ne 'Running') {
             Start-Service -Name $svc.Name -ErrorAction Stop
             Write-Host "    [+] Service started"
         } else {
-            Write-Host "    [+] Service already running — no change needed"
+            Write-Host "    [+] Service already running -- no change needed"
         }
 
     } catch {
